@@ -3,7 +3,6 @@ package capture
 import (
 	"fmt"
 	"image"
-	"log"
 
 	"github.com/go-vgo/robotgo"
 	"github.com/kbinani/screenshot"
@@ -47,19 +46,40 @@ func FullScreenUsingRobotGo() (image.Image, error) {
 	return img, nil
 }
 
-// debugging function.
+// CaptureAllDisplaysUsingScreenshot captures every active display
+// and returns a slice of images (one image per display).
+func CaptureAllDisplaysUsingScreenshot() ([]image.Image, error) {
+	displayCount := screenshot.NumActiveDisplays()
+	if displayCount == 0 {
+		return nil, fmt.Errorf("no active displays found")
+	}
+
+	var images []image.Image
+	for i := 0; i < displayCount; i++ {
+		bounds := screenshot.GetDisplayBounds(i)
+		img, err := screenshot.CaptureRect(bounds)
+		if err != nil {
+			return nil, fmt.Errorf("failed to capture display %d: %w", i, err)
+		}
+		images = append(images, img)
+	}
+
+	return images, nil
+}
+
+// DebugCapture - debugging function.
 func DebugCapture() {
 	img, err := FullScreenUsingScreenshot()
 	if err != nil {
-		log.Printf("Capture error (screenshot): %v\n", err)
+		fmt.Printf("Capture error (screenshot): %v\n", err)
 		return
 	}
-	log.Println("Captured screen using kbinani/screenshot:", img.Bounds())
+	fmt.Println("Captured screen using kbinani/screenshot:", img.Bounds())
 
 	img2, err := FullScreenUsingRobotGo()
 	if err != nil {
-		log.Printf("Capture error (robotgo): %v\n", err)
+		fmt.Printf("Capture error (robotgo): %v\n", err)
 		return
 	}
-	log.Println("Captured screen using robotgo:", img2.Bounds())
+	fmt.Println("Captured screen using robotgo:", img2.Bounds())
 }
